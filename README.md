@@ -1,4 +1,5 @@
 # Apple Mail Exporter
+
 ![CI](https://github.com/Aayush9029/apple-mail-exporter/actions/workflows/ci.yml/badge.svg?branch=main)
 
 Search and export emails from Apple Mail's local database by keyword.
@@ -12,17 +13,13 @@ brew tap Aayush9029/tap
 brew install apple-mail-exporter
 ```
 
-### pip
+### From source
 
 ```bash
-pip install apple-mail-exporter
-```
-
-### From source (dev)
-
-```bash
-uv venv
-uv pip install -e ".[dev]"
+git clone https://github.com/Aayush9029/apple-mail-exporter.git
+cd apple-mail-exporter
+swift build -c release
+cp .build/release/apple-mail-exporter /usr/local/bin/
 ```
 
 ## Usage
@@ -31,13 +28,14 @@ uv pip install -e ".[dev]"
 # Interactive mode
 apple-mail-exporter
 
-# CLI mode
+# Search with keywords
 apple-mail-exporter "Air Canada" "aircanada" --output receipts
-apple-mail-exporter "receipt" "invoice" --list-only
-apple-mail-exporter "Airbnb" --limit 10
 
-# Run as a module
-python -m apple_mail_exporter "Airbnb" --limit 10
+# List matching emails without exporting
+apple-mail-exporter "receipt" "invoice" --list-only
+
+# Limit results
+apple-mail-exporter "Airbnb" --limit 10
 ```
 
 ## How it works
@@ -49,10 +47,10 @@ Markdown file.
 
 ## Configuration
 
-You can override Mail locations if needed:
+Override Mail locations if needed:
 
-- `APPLE_MAIL_DIR` to point at a specific `V*` directory
-- `APPLE_MAIL_BASE` to point at the Mail base directory
+- `APPLE_MAIL_DIR` — point at a specific `V*` directory
+- `APPLE_MAIL_BASE` — point at the Mail base directory
 
 CLI flags:
 
@@ -61,25 +59,16 @@ CLI flags:
 
 ## Requirements
 
-- macOS with Apple Mail
-- Python 3.10+
-- Full Disk Access granted to your terminal (for reading Mail data)
+- macOS 13+ (Ventura or later)
+- Full Disk Access granted to your terminal (System Settings > Privacy & Security > Full Disk Access)
 
 ## Development
 
 ```bash
-uv pip install -e ".[dev]"
-pytest
+swift build
+swift test
 ```
 
-## Build
+## License
 
-```bash
-uv build
-```
-
-## Version
-
-```bash
-apple-mail-exporter --version
-```
+MIT

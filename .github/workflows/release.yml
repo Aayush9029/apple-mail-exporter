@@ -1,0 +1,36 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  build:
+    runs-on: macos-14
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build universal binary
+        run: swift build -c release --arch arm64 --arch x86_64
+
+      - name: Strip debug symbols
+        run: strip .build/apple/Products/Release/apple-mail-exporter
+
+      - name: Get version
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Package tarball
+        run: |
+          cd .build/apple/Products/Release
+          tar -czf apple-mail-exporter-${{ steps.version.outputs.VERSION }}-macos-universal.tar.gz apple-mail-exporter
+          shasum -a 256 apple-mail-exporter-${{ steps.version.outputs.VERSION }}-macos-universal.tar.gz > sha256.txt
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            .build/apple/Products/Release/apple-mail-exporter-${{ steps.version.outputs.VERSION }}-macos-universal.tar.gz
+            .build/apple/Products/Release/sha256.txt
+          generate_release_notes: true
