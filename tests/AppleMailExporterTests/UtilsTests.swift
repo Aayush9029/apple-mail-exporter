@@ -1,54 +1,40 @@
-import XCTest
+import Testing
 @testable import AppleMailExporter
 
-final class UtilsTests: XCTestCase {
+@Suite struct UtilsTests {
 
-    func testSanitizeFilenameRemovesInvalidChars() {
-        XCTAssertEqual(sanitizeFilename("Hello: World?"), "Hello_World")
+    @Test(arguments: [
+        ("Hello: World?", "Hello_World"),
+        ("   ", "untitled"),
+        ("", "untitled"),
+        ("a:::b", "a_b"),
+    ])
+    func sanitizeFilenameExpected(input: String, expected: String) {
+        #expect(sanitizeFilename(input) == expected)
     }
 
-    func testSanitizeFilenameWhitespaceOnly() {
-        XCTAssertEqual(sanitizeFilename("   "), "untitled")
-    }
-
-    func testSanitizeFilenameEmptyString() {
-        XCTAssertEqual(sanitizeFilename(""), "untitled")
-    }
-
-    func testSanitizeFilenameTruncation() {
+    @Test func sanitizeFilenameTruncation() {
         let long = String(repeating: "a", count: 120)
         let result = sanitizeFilename(long)
-        XCTAssertEqual(result.count, 80)
+        #expect(result.count == 80)
     }
 
-    func testSanitizeFilenameCollapsesUnderscores() {
-        XCTAssertEqual(sanitizeFilename("a:::b"), "a_b")
+    @Test(arguments: [
+        (1_700_000_000.0, "2023"),
+        (100_000_000.0, "200"),
+        (1_700_000_000_000.0, "2023"),
+    ])
+    func normalizeTimestampPrefix(value: Double, expectedPrefix: String) {
+        let result = normalizeTimestamp(value)
+        #expect(result.hasPrefix(expectedPrefix), "Expected \(expectedPrefix), got \(result)")
     }
 
-    func testNormalizeTimestampUnixEpoch() {
-        let result = normalizeTimestamp(1_700_000_000)
-        XCTAssertTrue(result.hasPrefix("2023"), "Expected 2023, got \(result)")
+    @Test(arguments: [nil, 0.0] as [Double?])
+    func normalizeTimestampReturnsUnknown(value: Double?) {
+        #expect(normalizeTimestamp(value) == "unknown")
     }
 
-    func testNormalizeTimestampMacEpoch() {
-        let result = normalizeTimestamp(100_000_000)
-        XCTAssertTrue(result.hasPrefix("200"), "Expected 200x, got \(result)")
-    }
-
-    func testNormalizeTimestampNil() {
-        XCTAssertEqual(normalizeTimestamp(nil), "unknown")
-    }
-
-    func testNormalizeTimestampZero() {
-        XCTAssertEqual(normalizeTimestamp(0), "unknown")
-    }
-
-    func testNormalizeTimestampMilliseconds() {
-        let result = normalizeTimestamp(1_700_000_000_000)
-        XCTAssertTrue(result.hasPrefix("2023"), "Expected 2023, got \(result)")
-    }
-
-    func testMacEpochOffset() {
-        XCTAssertEqual(macEpochOffsetSeconds, 978_307_200)
+    @Test func macEpochOffset() {
+        #expect(macEpochOffsetSeconds == 978_307_200)
     }
 }

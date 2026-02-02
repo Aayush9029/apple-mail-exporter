@@ -1,14 +1,15 @@
-import XCTest
+import Testing
+import Foundation
 @testable import AppleMailExporter
 
-final class EMLXParserTests: XCTestCase {
+@Suite struct EMLXParserTests {
 
     private func writeEMLX(at path: URL, emailBytes: Data) throws {
         let payload = "\(emailBytes.count)\n".data(using: .utf8)! + emailBytes + "\n".data(using: .utf8)!
         try payload.write(to: path)
     }
 
-    func testBasicParsing() throws {
+    @Test func basicParsing() throws {
         let tmp = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: tmp, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tmp) }
@@ -18,12 +19,12 @@ final class EMLXParserTests: XCTestCase {
         try writeEMLX(at: emlx, emailBytes: email)
 
         let result = extractEmailContent(emlxPath: emlx)
-        XCTAssertEqual(result.headers["Subject"], "Hello")
-        XCTAssertEqual(result.headers["From"], "Test <test@example.com>")
-        XCTAssertTrue(result.body.contains("Body text here"))
+        #expect(result.headers["Subject"] == "Hello")
+        #expect(result.headers["From"] == "Test <test@example.com>")
+        #expect(result.body.contains("Body text here"))
     }
 
-    func testQuotedPrintableDecoding() throws {
+    @Test func quotedPrintableDecoding() throws {
         let tmp = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: tmp, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tmp) }
@@ -33,12 +34,12 @@ final class EMLXParserTests: XCTestCase {
         try writeEMLX(at: emlx, emailBytes: email)
 
         let result = extractEmailContent(emlxPath: emlx)
-        XCTAssertTrue(result.body.contains("Hello"))
-        XCTAssertTrue(result.body.contains("World"))
-        XCTAssertTrue(result.body.contains("\n"))
+        #expect(result.body.contains("Hello"))
+        #expect(result.body.contains("World"))
+        #expect(result.body.contains("\n"))
     }
 
-    func testBase64Decoding() throws {
+    @Test func base64Decoding() throws {
         let tmp = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: tmp, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tmp) }
@@ -49,10 +50,10 @@ final class EMLXParserTests: XCTestCase {
         try writeEMLX(at: emlx, emailBytes: email)
 
         let result = extractEmailContent(emlxPath: emlx)
-        XCTAssertTrue(result.body.contains("Hello World"))
+        #expect(result.body.contains("Hello World"))
     }
 
-    func testFoldedHeaders() throws {
+    @Test func foldedHeaders() throws {
         let tmp = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: tmp, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tmp) }
@@ -62,17 +63,17 @@ final class EMLXParserTests: XCTestCase {
         try writeEMLX(at: emlx, emailBytes: email)
 
         let result = extractEmailContent(emlxPath: emlx)
-        XCTAssertEqual(result.headers["Subject"], "This is a very long subject line")
+        #expect(result.headers["Subject"] == "This is a very long subject line")
     }
 
-    func testMissingFile() {
+    @Test func missingFile() {
         let missing = URL(fileURLWithPath: "/nonexistent-\(UUID().uuidString).emlx")
         let result = extractEmailContent(emlxPath: missing)
-        XCTAssertTrue(result.headers.isEmpty)
-        XCTAssertEqual(result.body, "")
+        #expect(result.headers.isEmpty)
+        #expect(result.body == "")
     }
 
-    func testQuotedPrintableSoftLineBreak() throws {
+    @Test func quotedPrintableSoftLineBreak() throws {
         let tmp = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: tmp, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tmp) }
@@ -82,6 +83,6 @@ final class EMLXParserTests: XCTestCase {
         try writeEMLX(at: emlx, emailBytes: email)
 
         let result = extractEmailContent(emlxPath: emlx)
-        XCTAssertTrue(result.body.contains("Line1Line2"))
+        #expect(result.body.contains("Line1Line2"))
     }
 }

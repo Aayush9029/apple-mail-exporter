@@ -1,9 +1,10 @@
-import XCTest
+import Testing
+import Foundation
 @testable import AppleMailExporter
 
-final class ConfigTests: XCTestCase {
+@Suite struct ConfigTests {
 
-    func testFindMailVersionDirPicksHighest() throws {
+    @Test func findMailVersionDirPicksHighest() throws {
         let tmp = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: tmp, withIntermediateDirectories: true)
@@ -17,24 +18,24 @@ final class ConfigTests: XCTestCase {
         }
 
         let result = try findMailVersionDir(base: tmp)
-        XCTAssertEqual(result.lastPathComponent, "V11")
+        #expect(result.lastPathComponent == "V11")
     }
 
-    func testFindMailVersionDirThrowsWhenEmpty() throws {
+    @Test func findMailVersionDirThrowsWhenEmpty() throws {
         let tmp = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: tmp, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: tmp) }
 
-        XCTAssertThrowsError(try findMailVersionDir(base: tmp))
+        #expect(throws: (any Error).self) { try findMailVersionDir(base: tmp) }
     }
 
-    func testFindMailVersionDirThrowsWhenMissing() {
+    @Test func findMailVersionDirThrowsWhenMissing() {
         let missing = URL(fileURLWithPath: "/nonexistent-\(UUID().uuidString)")
-        XCTAssertThrowsError(try findMailVersionDir(base: missing))
+        #expect(throws: (any Error).self) { try findMailVersionDir(base: missing) }
     }
 
-    func testMacEpochOffsetValue() {
-        XCTAssertEqual(macEpochOffsetSeconds, 978_307_200)
+    @Test func macEpochOffsetValue() {
+        #expect(macEpochOffsetSeconds == 978_307_200)
     }
 }

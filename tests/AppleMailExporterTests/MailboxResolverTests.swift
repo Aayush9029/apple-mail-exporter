@@ -1,37 +1,27 @@
-import XCTest
+import Testing
+import Foundation
 @testable import AppleMailExporter
 
-final class MailboxResolverTests: XCTestCase {
+@Suite struct MailboxResolverTests {
 
-    func testImapURLToPath() {
+    @Test(arguments: [
+        ("imap://UUID/INBOX", "/Mail/UUID/INBOX.mbox"),
+        ("imap://UUID/[Gmail]/All%20Mail", "/Mail/UUID/[Gmail].mbox/All Mail.mbox"),
+        ("local://UUID/Drafts", "/Mail/UUID/Drafts.mbox"),
+    ])
+    func mailboxURLToPathResolution(urlString: String, expectedPath: String) {
         let mailDir = URL(fileURLWithPath: "/Mail")
-        let result = mailboxURLToPath("imap://UUID/INBOX", mailDir: mailDir)
-        XCTAssertEqual(result?.path, "/Mail/UUID/INBOX.mbox")
+        let result = mailboxURLToPath(urlString, mailDir: mailDir)
+        #expect(result?.path == expectedPath)
     }
 
-    func testNestedURLWithEncoding() {
+    @Test(arguments: [nil, "garbage"] as [String?])
+    func mailboxURLToPathReturnsNil(urlString: String?) {
         let mailDir = URL(fileURLWithPath: "/Mail")
-        let result = mailboxURLToPath("imap://UUID/[Gmail]/All%20Mail", mailDir: mailDir)
-        XCTAssertEqual(result?.path, "/Mail/UUID/[Gmail].mbox/All Mail.mbox")
+        #expect(mailboxURLToPath(urlString, mailDir: mailDir) == nil)
     }
 
-    func testLocalURL() {
-        let mailDir = URL(fileURLWithPath: "/Mail")
-        let result = mailboxURLToPath("local://UUID/Drafts", mailDir: mailDir)
-        XCTAssertEqual(result?.path, "/Mail/UUID/Drafts.mbox")
-    }
-
-    func testNilURL() {
-        let mailDir = URL(fileURLWithPath: "/Mail")
-        XCTAssertNil(mailboxURLToPath(nil, mailDir: mailDir))
-    }
-
-    func testInvalidURL() {
-        let mailDir = URL(fileURLWithPath: "/Mail")
-        XCTAssertNil(mailboxURLToPath("garbage", mailDir: mailDir))
-    }
-
-    func testFindEMLX() throws {
+    @Test func findEMLXFile() throws {
         let tmp = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         let subdir = tmp.appendingPathComponent("Messages")
         try FileManager.default.createDirectory(at: subdir, withIntermediateDirectories: true)
@@ -41,11 +31,11 @@ final class MailboxResolverTests: XCTestCase {
         try Data("test".utf8).write(to: emlxFile)
 
         let found = findEMLX(msgID: 123, mailboxPath: tmp)
-        XCTAssertNotNil(found)
-        XCTAssertEqual(found?.lastPathComponent, "123.emlx")
+        #expect(found != nil)
+        #expect(found?.lastPathComponent == "123.emlx")
     }
 
-    func testFindPartialEMLX() throws {
+    @Test func findPartialEMLX() throws {
         let tmp = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         let subdir = tmp.appendingPathComponent("Messages")
         try FileManager.default.createDirectory(at: subdir, withIntermediateDirectories: true)
@@ -55,16 +45,16 @@ final class MailboxResolverTests: XCTestCase {
         try Data("test".utf8).write(to: partialFile)
 
         let found = findEMLX(msgID: 456, mailboxPath: tmp)
-        XCTAssertNotNil(found)
-        XCTAssertEqual(found?.lastPathComponent, "456.partial.emlx")
+        #expect(found != nil)
+        #expect(found?.lastPathComponent == "456.partial.emlx")
     }
 
-    func testFindEMLXMissingDir() {
+    @Test func findEMLXMissingDir() {
         let missing = URL(fileURLWithPath: "/nonexistent-\(UUID().uuidString)")
-        XCTAssertNil(findEMLX(msgID: 1, mailboxPath: missing))
+        #expect(findEMLX(msgID: 1, mailboxPath: missing) == nil)
     }
 
-    func testFindEMLXNilPath() {
-        XCTAssertNil(findEMLX(msgID: 1, mailboxPath: nil))
+    @Test func findEMLXNilPath() {
+        #expect(findEMLX(msgID: 1, mailboxPath: nil) == nil)
     }
 }

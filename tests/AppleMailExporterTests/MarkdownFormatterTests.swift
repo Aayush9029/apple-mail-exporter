@@ -1,9 +1,9 @@
-import XCTest
+import Testing
 @testable import AppleMailExporter
 
-final class MarkdownFormatterTests: XCTestCase {
+@Suite struct MarkdownFormatterTests {
 
-    func testBasicFormatting() {
+    @Test func basicFormatting() {
         let record = EmailRecord(
             msgID: 42, subject: "Test Subject",
             senderAddress: "test@example.com", senderName: "Test User",
@@ -15,35 +15,35 @@ final class MarkdownFormatterTests: XCTestCase {
         )
         let md = formatEmailMarkdown(record: record, parsed: parsed, emlxFilename: "42.emlx")
 
-        XCTAssertTrue(md.contains("# Test Subject"))
-        XCTAssertTrue(md.contains("| **From** |"))
-        XCTAssertTrue(md.contains("test@example.com"))
-        XCTAssertTrue(md.contains("## Headers"))
-        XCTAssertTrue(md.contains("## Body"))
-        XCTAssertTrue(md.contains("Hello there"))
-        XCTAssertTrue(md.contains("`42.emlx`"))
+        #expect(md.contains("# Test Subject"))
+        #expect(md.contains("| **From** |"))
+        #expect(md.contains("test@example.com"))
+        #expect(md.contains("## Headers"))
+        #expect(md.contains("## Body"))
+        #expect(md.contains("Hello there"))
+        #expect(md.contains("`42.emlx`"))
     }
 
-    func testHTMLBodyWrappedInCodeBlock() {
+    @Test func htmlBodyWrappedInCodeBlock() {
         let record = EmailRecord(msgID: 1, subject: "HTML")
         let parsed = ParsedEmail(headers: [:], body: "<html><body>Hi</body></html>")
         let md = formatEmailMarkdown(record: record, parsed: parsed, emlxFilename: nil)
 
-        XCTAssertTrue(md.contains("```html"))
+        #expect(md.contains("```html"))
     }
 
-    func testMissingEmailBody() {
+    @Test func missingEmailBody() {
         let record = EmailRecord(msgID: 1, subject: "No Body")
         let md = formatEmailMarkdown(record: record, parsed: nil, emlxFilename: nil)
 
-        XCTAssertTrue(md.contains("not available locally"))
+        #expect(md.contains("not available locally"))
     }
 
-    func testNilFieldsHandled() {
+    @Test func nilFieldsHandled() {
         let record = EmailRecord(msgID: 1)
         let md = formatEmailMarkdown(record: record, parsed: nil, emlxFilename: nil)
 
-        XCTAssertTrue(md.contains("# no-subject"))
-        XCTAssertTrue(md.contains("unknown"))
+        #expect(md.contains("# no-subject"))
+        #expect(md.contains("unknown"))
     }
 }

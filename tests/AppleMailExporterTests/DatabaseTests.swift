@@ -1,8 +1,9 @@
-import XCTest
+import Testing
+import Foundation
 import CSQLite
 @testable import AppleMailExporter
 
-final class DatabaseTests: XCTestCase {
+@Suite struct DatabaseTests {
 
     private func createTestDB() throws -> String {
         let tmp = FileManager.default.temporaryDirectory
@@ -11,7 +12,7 @@ final class DatabaseTests: XCTestCase {
 
         var db: OpaquePointer?
         guard sqlite3_open(path, &db) == SQLITE_OK else {
-            XCTFail("Failed to create test DB")
+            Issue.record("Failed to create test DB")
             return path
         }
         defer { sqlite3_close(db) }
@@ -36,78 +37,78 @@ final class DatabaseTests: XCTestCase {
         var errMsg: UnsafeMutablePointer<CChar>?
         sqlite3_exec(db, schema, nil, nil, &errMsg)
         if let errMsg {
-            XCTFail("Schema error: \(String(cString: errMsg))")
+            Issue.record("Schema error: \(String(cString: errMsg))")
             sqlite3_free(errMsg)
         }
 
         return path
     }
 
-    func testSearchBySubject() throws {
+    @Test func searchBySubject() throws {
         let path = try createTestDB()
         defer { try? FileManager.default.removeItem(atPath: path) }
 
         let mailDB = try MailDatabase(path: path)
         let results = try mailDB.searchEmails(keywords: ["airbnb"])
-        XCTAssertEqual(results.count, 1)
-        XCTAssertEqual(results[0].subject, "Airbnb Receipt")
-        XCTAssertEqual(results[0].senderAddress, "noreply@airbnb.com")
+        #expect(results.count == 1)
+        #expect(results[0].subject == "Airbnb Receipt")
+        #expect(results[0].senderAddress == "noreply@airbnb.com")
     }
 
-    func testSearchBySender() throws {
+    @Test func searchBySender() throws {
         let path = try createTestDB()
         defer { try? FileManager.default.removeItem(atPath: path) }
 
         let mailDB = try MailDatabase(path: path)
         let results = try mailDB.searchEmails(keywords: ["airline.com"])
-        XCTAssertEqual(results.count, 1)
-        XCTAssertEqual(results[0].subject, "Flight Booking")
+        #expect(results.count == 1)
+        #expect(results[0].subject == "Flight Booking")
     }
 
-    func testSearchMultipleKeywords() throws {
+    @Test func searchMultipleKeywords() throws {
         let path = try createTestDB()
         defer { try? FileManager.default.removeItem(atPath: path) }
 
         let mailDB = try MailDatabase(path: path)
         let results = try mailDB.searchEmails(keywords: ["airbnb", "flight"])
-        XCTAssertEqual(results.count, 2)
+        #expect(results.count == 2)
     }
 
-    func testSearchWithLimit() throws {
+    @Test func searchWithLimit() throws {
         let path = try createTestDB()
         defer { try? FileManager.default.removeItem(atPath: path) }
 
         let mailDB = try MailDatabase(path: path)
         let results = try mailDB.searchEmails(keywords: ["airbnb", "flight"], limit: 1)
-        XCTAssertEqual(results.count, 1)
+        #expect(results.count == 1)
     }
 
-    func testSearchEmptyKeywords() throws {
+    @Test func searchEmptyKeywords() throws {
         let path = try createTestDB()
         defer { try? FileManager.default.removeItem(atPath: path) }
 
         let mailDB = try MailDatabase(path: path)
         let results = try mailDB.searchEmails(keywords: [])
-        XCTAssertTrue(results.isEmpty)
+        #expect(results.isEmpty)
     }
 
-    func testSearchNoMatch() throws {
+    @Test func searchNoMatch() throws {
         let path = try createTestDB()
         defer { try? FileManager.default.removeItem(atPath: path) }
 
         let mailDB = try MailDatabase(path: path)
         let results = try mailDB.searchEmails(keywords: ["nonexistent"])
-        XCTAssertTrue(results.isEmpty)
+        #expect(results.isEmpty)
     }
 
-    func testResultsOrderedByDateDescending() throws {
+    @Test func resultsOrderedByDateDescending() throws {
         let path = try createTestDB()
         defer { try? FileManager.default.removeItem(atPath: path) }
 
         let mailDB = try MailDatabase(path: path)
         let results = try mailDB.searchEmails(keywords: ["airbnb", "flight"])
-        XCTAssertEqual(results.count, 2)
-        XCTAssertEqual(results[0].subject, "Flight Booking")
-        XCTAssertEqual(results[1].subject, "Airbnb Receipt")
+        #expect(results.count == 2)
+        #expect(results[0].subject == "Flight Booking")
+        #expect(results[1].subject == "Airbnb Receipt")
     }
 }
