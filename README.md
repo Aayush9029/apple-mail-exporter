@@ -13,6 +13,8 @@ brew tap Aayush9029/tap
 brew install apple-mail-exporter
 ```
 
+Zero dependencies — downloads a prebuilt universal binary (arm64 + x86_64).
+
 ### From source
 
 ```bash
@@ -28,15 +30,17 @@ cp .build/release/apple-mail-exporter /usr/local/bin/
 # Interactive mode
 apple-mail-exporter
 
-# Search with keywords
-apple-mail-exporter "Air Canada" "aircanada" --output receipts
+# Search with keywords (case-insensitive)
+apple-mail-exporter airbnb --output receipts
 
-# List matching emails without exporting
-apple-mail-exporter "receipt" "invoice" --list-only
+# Multiple keywords (matches any)
+apple-mail-exporter receipt invoice payment --list-only
 
 # Limit results
-apple-mail-exporter "Airbnb" --limit 10
+apple-mail-exporter airbnb --limit 10
 ```
+
+Searches are **case-insensitive** — `airbnb`, `Airbnb`, and `AIRBNB` all match the same emails. Multiple keywords are OR'd: any match counts.
 
 ## How it works
 
