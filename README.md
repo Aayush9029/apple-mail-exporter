@@ -38,3 +38,7 @@ Searches are **case-insensitive** and multiple keywords are OR'd.
 | `--mail-base <dir>` | Override Mail base directory | |
 
 > Requires Full Disk Access for your terminal (System Settings > Privacy & Security > Full Disk Access).
+
+---
+
+*More CLI tools: [`brew tap aayush9029/tap`](https://github.com/Aayush9029/homebrew-tap)*
