@@ -1,3 +1,5 @@
+<img src="assets/icon.png" width="128" alt="apple-mail-exporter">
+
 # Apple Mail Exporter
 
 Search and export emails from Apple Mail's local database by keyword.
